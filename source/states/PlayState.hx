@@ -142,6 +142,11 @@ class PlayState extends MusicBeatState
 	public var unspawnNotes:Array<Note> = [];
 	public var eventNotes:Array<EventNote> = [];
 
+	// for event
+	public var blackout:FlxSprite;
+	public var upperBar:FlxSprite;
+	public var lowerBar:FlxSprite;
+
 	public var camFollow:FlxObject;
 	private static var prevCamFollow:FlxObject;
 
@@ -450,6 +455,28 @@ class PlayState extends MusicBeatState
 		startCharacterScripts(dad.curCharacter);
 		startCharacterScripts(boyfriend.curCharacter);
 		#end
+
+		upperBar = new FlxSprite(-110, -350).makeGraphic(1500, 350, FlxColor.BLACK);
+		upperBar.scrollFactor.set();
+		upperBar.antialiasing = ClientPrefs.data.antialiasing;
+		add(upperBar);
+
+		lowerBar = new FlxSprite(-110, 720).makeGraphic(1500, 350, FlxColor.BLACK);
+		lowerBar.scrollFactor.set();
+		lowerBar.antialiasing = ClientPrefs.data.antialiasing;
+		add(lowerBar);
+
+		blackout = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
+		blackout.scrollFactor.set();
+		blackout.screenCenter();
+		blackout.antialiasing = ClientPrefs.data.antialiasing;
+		add(blackout);
+		if (songName != "rainy-seduction")
+			blackout.alpha = 0;
+
+		upperBar.cameras = [camHUD];
+		lowerBar.cameras = [camHUD];
+		blackout.cameras = [camHUD];
 
 		uiGroup = new FlxSpriteGroup();
 		comboGroup = new FlxSpriteGroup();
@@ -2251,6 +2278,71 @@ class PlayState extends MusicBeatState
 			case 'Play Sound':
 				if(flValue2 == null) flValue2 = 1;
 				FlxG.sound.play(Paths.sound(value1), flValue2);
+
+			case "Blackout":
+				if (Std.int(flValue1) == 0)
+					FlxTween.tween(blackout, { alpha: 1 }, flValue2);
+				else if (Std.int(flValue1) == 1)
+					FlxTween.tween(blackout, { alpha: 0 }, flValue2);
+
+			case "Cinematics (With HUD)":
+				if (flValue1 > 0 && flValue2 > 0)
+				{
+					FlxTween.tween(upperBar, { y: -350 + flValue2 }, flValue1, { ease: FlxEase.quadOut });
+					FlxTween.tween(lowerBar, { y: 720 - flValue2 }, flValue1, { ease: FlxEase.quadOut });
+				}
+				else if (flValue2 <= 0)
+				{
+					FlxTween.tween(upperBar, { y: -350 }, flValue2, { ease: FlxEase.quadIn });
+					FlxTween.tween(lowerBar, { y: 720 }, flValue2, { ease: FlxEase.quadIn });
+				}
+
+			case "Cinematics":
+				if (flValue1 == 1)
+				{
+					FlxTween.tween(upperBar, { y: -350 + 90 }, flValue2, { ease: FlxEase.quadOut });
+					FlxTween.tween(lowerBar, { y: 720 - 90 }, flValue2, { ease: FlxEase.quadOut });
+					FlxTween.tween(uiGroup, { alpha: 0 }, flValue2, { ease: FlxEase.quadOut });
+				}
+				else if (flValue1 == 2)
+				{
+					FlxTween.tween(upperBar, { y: -350 }, flValue2, { ease: FlxEase.quadIn });
+					FlxTween.tween(lowerBar, { y: 720 }, flValue2, { ease: FlxEase.quadIn });
+					FlxTween.tween(uiGroup, { alpha: 1 }, flValue2, { ease: FlxEase.quadIn });
+				}
+
+			case "Flash Camera":
+				var value2Fix:String = '#$value2';
+				var flashingSpr = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.fromString(value2Fix));
+				flashingSpr.scale.set(5.0, 5.0);
+				flashingSpr.scrollFactor.set();
+				flashingSpr.screenCenter();
+				flashingSpr.blend = ADD;
+				if (ClientPrefs.data.flashing)
+					add(flashingSpr);
+
+				flashingSpr.alpha = .5;
+				FlxTween.tween(flashingSpr, { alpha: 0 }, flValue1, { onComplete: _ -> {
+					remove(flashingSpr);
+				}});
+
+				for (i in 0 ... strumLineNotes.members.length)
+				{
+					var strum = strumLineNotes.members[i];
+
+					if (strum.angle == 0)
+						FlxTween.angle(strum, 0, 360, flValue1, { ease: FlxEase.quadOut });
+					else if (strum.angle == 360)
+						FlxTween.angle(strum, 360, 0, flValue1, { ease: FlxEase.quadOut });
+				}
+
+			case "Set Cam Zoom":
+				if (flValue2 == null)
+					defaultCamZoom = flValue1;
+				else
+					FlxTween.tween(camGame, { zoom: flValue1 }, flValue2, { ease: FlxEase.sineInOut, onComplete: _ -> {
+						defaultCamZoom = camGame.zoom;
+					}});
 		}
 
 		stagesFunc(function(stage:BaseStage) stage.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime));

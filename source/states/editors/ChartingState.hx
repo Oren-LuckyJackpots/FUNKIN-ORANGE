@@ -83,7 +83,12 @@ class ChartingState extends MusicBeatState implements PsychUIEventHandler.PsychU
 		['Change Character', "Value 1: Character to change (Dad, BF, GF)\nValue 2: New character's name"],
 		['Change Scroll Speed', "Value 1: Scroll Speed Multiplier (1 is default)\nValue 2: Time it takes to change fully in seconds."],
 		['Set Property', "Value 1: Variable name\nValue 2: New value"],
-		['Play Sound', "Value 1: Sound file name\nValue 2: Volume (Default: 1), ranges from 0 to 1"]
+		['Play Sound', "Value 1: Sound file name\nValue 2: Volume (Default: 1), ranges from 0 to 1"],
+		['Blackout', 'Set 0 is start blackout, set 2 is end blackout in Value 1'],
+		['Cinematics (With HUD)', 'CINEMATIC TYPE : With HUD Assets\nValue 1 : SPEED\nMark this with with how fast you would like the\nbars move In/Out in seconds.\n(Minimum is 0.2).\nValue 2 : DISTANCE\nMark this with how far you want to bars to move in.\n(Recommended 90)\n(If marked with 0, then the event will end).'],
+		['Cinematics', 'Value 1: Start/End of Cinematic\nMark this Value with 1 to begin the event\nor mark this value with 2 to end the event\n\nValue 2: Cinematic Bar Speed\nMark this Value with how fast you would like\nthe bars to move in (Suggested: 0.5)\n\nLeave Blank to only fade out the HUD'],
+		['Flash Camera', 'Value 1: Flash Duration\n\nValue 2: Color Code'],
+		['Set Cam Zoom', 'Value 1: Cam zoom\n\nValue 2: if blank, it will smoothly zoom regularly,\notherwise it will do an instant zoom']
 	];
 	
 	public static var keysArray:Array<FlxKey> = [ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT]; //Used for Vortex Editor
