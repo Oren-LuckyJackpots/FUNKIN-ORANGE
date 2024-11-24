@@ -45,6 +45,13 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			BOOL);
 		addOption(option);
 
+		var option:Option = new Option('Combo Group Camera',
+			'like vs impostor? lol',
+			'ratingCam',
+			STRING,
+			['camGame', 'camHUD', 'camOther']);
+		addOption(option);
+
 		var option:Option = new Option('Hitsound Volume',
 			'Funny notes does \"Tick!\" when you hit them.',
 			'hitsoundVolume',

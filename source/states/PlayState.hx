@@ -202,7 +202,6 @@ class PlayState extends MusicBeatState
 	public var songMisses:Int = 0;
 	public var scoreTxt:FlxText;
 	var timeTxt:FlxText;
-	var scoreTxtTween:FlxTween;
 
 	public static var campaignScore:Int = 0;
 	public static var campaignMisses:Int = 0;
@@ -497,6 +496,7 @@ class PlayState extends MusicBeatState
 		if(ClientPrefs.data.timeBarType == 'Song Name') timeTxt.text = SONG.song;
 
 		timeBar = new Bar(0, timeTxt.y + (timeTxt.height / 4), 'timeBar', function() return songPercent, 0, 1);
+		timeBar.setColors(FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]));
 		timeBar.scrollFactor.set();
 		timeBar.screenCenter(X);
 		timeBar.alpha = 0;
@@ -555,8 +555,8 @@ class PlayState extends MusicBeatState
 		iconP2.alpha = ClientPrefs.data.healthBarAlpha;
 		uiGroup.add(iconP2);
 
-		scoreTxt = new FlxText(0, healthBar.y + 40, FlxG.width, "", 20);
-		scoreTxt.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		scoreTxt = new FlxText(0, healthBar.y + 45, FlxG.width, "", 20);
+		scoreTxt.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		scoreTxt.scrollFactor.set();
 		scoreTxt.borderSize = 1.25;
 		scoreTxt.visible = !ClientPrefs.data.hideHud;
@@ -574,7 +574,7 @@ class PlayState extends MusicBeatState
 
 		uiGroup.cameras = [camHUD];
 		noteGroup.cameras = [camHUD];
-		comboGroup.cameras = [camHUD];
+		comboGroup.cameras = [LuaUtils.cameraFromString(ClientPrefs.data.ratingCam)];
 
 		startingSong = true;
 
@@ -1140,24 +1140,21 @@ class PlayState extends MusicBeatState
 			return;
 
 		updateScoreText();
-		if (!miss && !cpuControlled)
-			doScoreBop();
+		if (!cpuControlled)
+			doScoreBop(miss);
 
 		callOnScripts('onUpdateScore', [miss]);
 	}
 
 	public dynamic function updateScoreText()
 	{
-		var str:String = Language.getPhrase('rating_$ratingName', ratingName);
+		var percent:Float = .0;
 		if(totalPlayed != 0)
-		{
-			var percent:Float = CoolUtil.floorDecimal(ratingPercent * 100, 2);
-			str += ' (${percent}%) - ' + Language.getPhrase(ratingFC);
-		}
+			percent = CoolUtil.floorDecimal(ratingPercent * 100, 2);
 
 		var tempScore:String;
-		if(!instakillOnMiss) tempScore = Language.getPhrase('score_text', 'Score: {1} | Misses: {2} | Rating: {3}', [songScore, songMisses, str]);
-		else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} | Rating: {2}', [songScore, str]);
+		if(!instakillOnMiss) tempScore = Language.getPhrase('score_text', 'Score: {1} - Misses: {2} - Accuracy: {3}% - Rank: {4}', [songScore, songMisses, percent, ratingFC]);
+		else tempScore = Language.getPhrase('score_text_instakill', 'Score: {1} - Accuracy: {2}% - Rank: {3}', [songScore, percent, ratingFC]);
 		scoreTxt.text = tempScore;
 	}
 
@@ -1168,7 +1165,7 @@ class PlayState extends MusicBeatState
 		var bads:Int = ratingsData[2].hits;
 		var shits:Int = ratingsData[3].hits;
 
-		ratingFC = "";
+		ratingFC = "N/A";
 		if(songMisses == 0)
 		{
 			if (bads > 0 || shits > 0) ratingFC = 'FC';
@@ -1181,17 +1178,31 @@ class PlayState extends MusicBeatState
 		}
 	}
 
-	public function doScoreBop():Void {
+	var scoreTxtTween:FlxTween;
+	var scoreTxtColorTween:FlxTween;
+	public function doScoreBop(?miss:Bool = false):Void {
 		if(!ClientPrefs.data.scoreZoom)
 			return;
 
 		if(scoreTxtTween != null)
 			scoreTxtTween.cancel();
+		if (scoreTxtColorTween != null)
+			scoreTxtColorTween.cancel();
 
-		scoreTxt.scale.x = 1.075;
-		scoreTxt.scale.y = 1.075;
+		var scaling:Float = 1.075;
+		if (miss) scaling = 1.01;
+
+		scoreTxt.scale.set(scaling, scaling);
+		if (!miss)
+		{
+			scoreTxtColorTween = FlxTween.color(scoreTxt, 0.2, FlxColor.fromRGB(dad.healthColorArray[0], dad.healthColorArray[1], dad.healthColorArray[2]), FlxColor.WHITE, {
+				onComplete: _ -> {
+					scoreTxtColorTween = null;
+				}
+			});
+		}
 		scoreTxtTween = FlxTween.tween(scoreTxt.scale, {x: 1, y: 1}, 0.2, {
-			onComplete: function(twn:FlxTween) {
+			onComplete: _ -> {
 				scoreTxtTween = null;
 			}
 		});

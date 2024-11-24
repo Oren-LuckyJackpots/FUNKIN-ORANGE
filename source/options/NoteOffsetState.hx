@@ -1,5 +1,6 @@
 package options;
 
+import psychlua.LuaUtils;
 import backend.StageData;
 import objects.Character;
 import objects.Bar;
@@ -78,7 +79,7 @@ class NoteOffsetState extends MusicBeatState
 		coolText.x = FlxG.width * 0.35;
 
 		rating = new FlxSprite().loadGraphic(Paths.image('sick'));
-		rating.cameras = [camHUD];
+		rating.cameras = [cameraFromString(ClientPrefs.data.ratingCam)];
 		rating.antialiasing = ClientPrefs.data.antialiasing;
 		rating.setGraphicSize(Std.int(rating.width * 0.7));
 		rating.updateHitbox();
@@ -86,7 +87,7 @@ class NoteOffsetState extends MusicBeatState
 		add(rating);
 
 		comboNums = new FlxSpriteGroup();
-		comboNums.cameras = [camHUD];
+		comboNums.cameras = [cameraFromString(ClientPrefs.data.ratingCam)];
 		add(comboNums);
 
 		var seperatedScore:Array<Int> = [];
@@ -99,7 +100,7 @@ class NoteOffsetState extends MusicBeatState
 		for (i in seperatedScore)
 		{
 			var numScore:FlxSprite = new FlxSprite(43 * daLoop).loadGraphic(Paths.image('num' + i));
-			numScore.cameras = [camHUD];
+			numScore.cameras = [cameraFromString(ClientPrefs.data.ratingCam)];
 			numScore.antialiasing = ClientPrefs.data.antialiasing;
 			numScore.setGraphicSize(Std.int(numScore.width * 0.5));
 			numScore.updateHitbox();
@@ -173,6 +174,17 @@ class NoteOffsetState extends MusicBeatState
 		super.create();
 	}
 
+	function cameraFromString(cam:String):FlxCamera {
+		switch(cam.toLowerCase()) {
+			case 'camgame' | 'game': return camGame;
+			case 'camhud' | 'hud': return camHUD;
+			case 'camother' | 'other': return camOther;
+		}
+		var camera:FlxCamera = MusicBeatState.getVariables().get(cam);
+		if (camera == null || !Std.isOfType(camera, FlxCamera)) camera = camGame;
+		return camera;
+	}
+
 	var holdTime:Float = 0;
 	var onComboMenu:Bool = true;
 	var holdingObjectType:Null<Bool> = null;
@@ -203,7 +215,7 @@ class NoteOffsetState extends MusicBeatState
 			// changed to controller mid state
 			if(controls.controllerMode)
 			{
-				var mousePos = FlxG.mouse.getScreenPosition(camHUD);
+				var mousePos = FlxG.mouse.getScreenPosition(cameraFromString(ClientPrefs.data.ratingCam));
 				controllerPointer.x = mousePos.x;
 				controllerPointer.y = mousePos.y;
 			}
@@ -303,9 +315,9 @@ class NoteOffsetState extends MusicBeatState
 			{
 				holdingObjectType = null;
 				if(!controls.controllerMode)
-					FlxG.mouse.getScreenPosition(camHUD, startMousePos);
+					FlxG.mouse.getScreenPosition(cameraFromString(ClientPrefs.data.ratingCam), startMousePos);
 				else
-					controllerPointer.getScreenPosition(startMousePos, camHUD);
+					controllerPointer.getScreenPosition(startMousePos, cameraFromString(ClientPrefs.data.ratingCam));
 
 				if (startMousePos.x - comboNums.x >= 0 && startMousePos.x - comboNums.x <= comboNums.width &&
 					startMousePos.y - comboNums.y >= 0 && startMousePos.y - comboNums.y <= comboNums.height)
@@ -335,9 +347,9 @@ class NoteOffsetState extends MusicBeatState
 				{
 					var mousePos:FlxPoint = null;
 					if(!controls.controllerMode)
-						mousePos = FlxG.mouse.getScreenPosition(camHUD);
+						mousePos = FlxG.mouse.getScreenPosition(cameraFromString(ClientPrefs.data.ratingCam));
 					else
-						mousePos = controllerPointer.getScreenPosition(camHUD);
+						mousePos = controllerPointer.getScreenPosition(cameraFromString(ClientPrefs.data.ratingCam));
 
 					var addNum:Int = holdingObjectType ? 2 : 0;
 					ClientPrefs.data.comboOffset[addNum + 0] = Math.round((mousePos.x - startMousePos.x) + startComboOffset.x);

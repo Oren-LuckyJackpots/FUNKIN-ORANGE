@@ -20,6 +20,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	private var checkboxGroup:FlxTypedGroup<CheckboxThingie>;
 	private var grpTexts:FlxTypedGroup<AttachedText>;
 
+	private var descGroup:FlxSpriteGroup;
 	private var descBox:FlxSprite;
 	private var descText:FlxText;
 
@@ -54,9 +55,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		checkboxGroup = new FlxTypedGroup<CheckboxThingie>();
 		add(checkboxGroup);
 
+		descGroup = new FlxSpriteGroup();
+		add(descGroup);
+
 		descBox = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
 		descBox.alpha = 0.6;
-		add(descBox);
+		descGroup.add(descBox);
 
 		var titleText:Alphabet = new Alphabet(75, 45, title, true);
 		titleText.setScale(0.6);
@@ -67,7 +71,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		descText.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		descText.scrollFactor.set();
 		descText.borderSize = 2.4;
-		add(descText);
+		descGroup.add(descText);
 
 		for (i in 0...optionsArray.length)
 		{
@@ -495,6 +499,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		descBox.setPosition(descText.x - 10, descText.y - 10);
 		descBox.setGraphicSize(Std.int(descText.width + 20), Std.int(descText.height + 25));
 		descBox.updateHitbox();
+
+		FlxTween.cancelTweensOf(descGroup);
+		FlxTween.tween(descGroup, { y: -75 }, 0.1, { ease: FlxEase.sineOut, onComplete: _ -> {
+			FlxTween.tween(descGroup, { y: 0 }, 1.0, { ease: FlxEase.sineOut });
+		}});
 
 		curOption = optionsArray[curSelected]; //shorter lol
 		FlxG.sound.play(Paths.sound('scrollMenu'));
